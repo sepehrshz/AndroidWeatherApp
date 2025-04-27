@@ -16,41 +16,45 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Header() {
-        Box(
+fun Header(
+    onSignUpClick: () -> Unit,
+    onLoginClick:  () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
             modifier = Modifier
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .padding(start = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row {
-                    Button(
-                        onClick = { /* Sign up button clicked */ },
-                        modifier = Modifier.padding(8.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF8CC8FF),
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text("Sign up")
-                    }
+            Row {
+                Button(
+                    onClick = onSignUpClick,    // ← اینجا
+                    modifier = Modifier.padding(8.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF8CC8FF),
+                        contentColor   = Color.White
+                    )
+                ) {
+                    Text("Sign up")
+                }
 
-                    Button(
-                        onClick = { /* Login button clicked */ },
-                        modifier = Modifier.padding(8.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF8CC8FF),
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text("Login")
-                    }
+                Button(
+                    onClick = onLoginClick,      // ← و اینجا
+                    modifier = Modifier.padding(8.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF8CC8FF),
+                        contentColor   = Color.White
+                    )
+                ) {
+                    Text("Login")
                 }
             }
         }
     }
+}
