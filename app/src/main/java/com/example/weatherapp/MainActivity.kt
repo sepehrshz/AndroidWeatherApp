@@ -65,13 +65,15 @@ fun WeatherApp() {
         is Screen.Login -> {
             LoginScreen(
                 CreateAccountScreen = { currentScreen = Screen.Signup },
-                onSignInSuccess     = { currentScreen = Screen.Weather }  // ← بازگشت به صفحه اصلی
+                onSignInSuccess     = { currentScreen = Screen.Weather },
+                onBack = { currentScreen = Screen.Weather }
             )
         }
         is Screen.Signup -> {
             CreateAccountScreen(
                 LoginScreen = { currentScreen = Screen.Login },
-                onSignUpSuccess = { currentScreen = Screen.Weather }
+                onSignUpSuccess = { currentScreen = Screen.Weather },
+                onBack = { currentScreen = Screen.Weather }
 
             )
         }

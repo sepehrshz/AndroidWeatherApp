@@ -2,6 +2,7 @@ package com.example.weatherapp
 
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
@@ -24,9 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -50,8 +51,14 @@ fun CreateAccountScreen(
     iconBackgroundColor: Color = Color(0xFFE7E7E7),
     iconSpacing: Dp = 16.dp,
     LoginScreen: () -> Unit = {},
-    onSignUpSuccess: () -> Unit = {}     // ← اضافه شد
+    onSignUpSuccess: () -> Unit = {},
+    onBack: () -> Unit = {}                // ← جدید: callback برای دکمهٔ Back
 ) {
+    // هندلر برای دکمهٔ Back دستگاه
+    BackHandler {
+        onBack()
+    }
+
     val focusManager = LocalFocusManager.current
     val configuration = LocalConfiguration.current
     val screenHeightDp = configuration.screenHeightDp.dp
@@ -142,12 +149,11 @@ fun CreateAccountScreen(
             Button(
                 onClick = {
                     focusManager.clearFocus()
-                    // Set error flags based on emptiness
                     emailError = email.isBlank()
                     passwordError = password.isBlank()
                     confirmPasswordError = confirmPassword.isBlank()
                     if (!emailError && !passwordError && !confirmPasswordError) {
-                        onSignUpSuccess()   // ← وقتی اروریم نبود این‌جا برو صفحه اصلی
+                        onSignUpSuccess()
                     }
                 },
                 modifier = Modifier
@@ -164,16 +170,15 @@ fun CreateAccountScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(40.dp))
             Text(
                 text = "Already have an account",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF616160),
-                modifier = Modifier
-                    .clickable { LoginScreen() }
+                modifier = Modifier.clickable { LoginScreen() }
             )
-            Spacer(modifier = Modifier.height(70.dp))
+            Spacer(modifier = Modifier.height(40.dp))
             Text(
                 text = "Or continue with",
                 fontSize = 14.sp,
@@ -274,7 +279,8 @@ fun SocialButton(
 fun CreateAccountScreenPreview() {
     MaterialTheme {
         CreateAccountScreen(
-            onSignUpSuccess = { /* navigate to home */ }
+            onSignUpSuccess = { /* navigate to home */ },
+            onBack = { /* back to home */ }
         )
     }
 }

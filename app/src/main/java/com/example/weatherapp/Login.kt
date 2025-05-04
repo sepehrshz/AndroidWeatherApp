@@ -2,6 +2,7 @@ package com.example.weatherapp
 
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
@@ -23,9 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -43,7 +44,6 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-
     primaryColor: Color = Color(0xFF008BF8),
     titleColor: Color = primaryColor,
     subtitleColor: Color = Color.Black,
@@ -51,9 +51,14 @@ fun LoginScreen(
     iconBackgroundColor: Color = Color(0xFFE7E7E7),
     iconSpacing: Dp = 16.dp,
     CreateAccountScreen: () -> Unit = {},
-    onSignInSuccess: () -> Unit = {}       // ← اضافه شد
-
+    onSignInSuccess: () -> Unit = {},
+    onBack: () -> Unit = {}          // ← جدید: callback برای دکمهٔ Back
 ) {
+    // هندل کردن Back دستگاه
+    BackHandler {
+        onBack()
+    }
+
     val focusManager = LocalFocusManager.current
     val configuration = LocalConfiguration.current
     val screenHeightDp = configuration.screenHeightDp.dp
@@ -116,7 +121,6 @@ fun LoginScreen(
             password = it
             if (passwordError && it.isNotBlank()) passwordError = false
         }
-        // ← این بخش اضافه شد:
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Forgot your password?",
@@ -128,7 +132,6 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .clickable { /* TODO: navigate to ForgotPasswordScreen */ }
         )
-        // ← تا اینجا
 
         Spacer(modifier = Modifier.height(35.dp))
 
@@ -163,7 +166,7 @@ fun LoginScreen(
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF616160),
-            modifier = Modifier.clickable { /* TODO */ }
+            modifier = Modifier
                 .clickable { CreateAccountScreen() }
         )
         Spacer(modifier = Modifier.height(70.dp))
@@ -266,9 +269,9 @@ fun LoginSocialButton(
 fun LoginScreenPreview() {
     MaterialTheme {
         LoginScreen(
-            /* بقیه‌ی پارامترهای رنگ و … نیازی نیست چون پیش‌فرض دارن */
-            CreateAccountScreen = {},
-            onSignInSuccess     = { /* navigate to home */ }
+            CreateAccountScreen = { /* nav to sign-up */ },
+            onSignInSuccess     = { /* nav to home */ },
+            onBack              = { /* nav to home */ }
         )
     }
 }
