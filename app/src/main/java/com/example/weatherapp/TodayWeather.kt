@@ -31,7 +31,7 @@ fun TodayWeather() {
 //                    )
 //                )
 //            )
-            .padding(start = 24.dp, end = 24.dp, top = 1.dp, bottom = 32.dp)
+            .padding(start = 24.dp, end = 24.dp, top = 1.dp, bottom = 1.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

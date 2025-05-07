@@ -26,7 +26,7 @@ fun DailyWeather() {
     val dayList = listOf("Tomorrow" , "Saturday" , "Sunday" , "Monday" , "Tuesday")
     val scrollState = rememberScrollState()
 
-    Column(modifier = Modifier.padding(start=16.dp, bottom = 45.dp, end = 16.dp, top = 40.dp)
+    Column(modifier = Modifier.padding(start=16.dp, bottom = 45.dp, end = 16.dp, top =40.dp)
         .verticalScroll(scrollState)) {
 
         dayList.forEach{
