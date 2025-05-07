@@ -46,8 +46,9 @@ fun WeatherApp() {
                     .background(
                         brush = Brush.horizontalGradient(
                             colors = listOf(
-                                Color(0xFF138EFF),
-                                Color(0xFF6BB6FF)
+                                Color(0xFF157DE0), // left deep blue
+                                Color(0xFF4A9EF3), // mid
+                                Color(0xFF8ED0FD)  // right light blue
                             )
                         )
                     )
@@ -63,15 +64,7 @@ fun WeatherApp() {
                 ){
                    Column(modifier = Modifier
                        .fillMaxWidth()
-                       .background(
-                       brush = Brush.horizontalGradient(
-                           colors = listOf(
-                               Color(0xFF157DE0), // left deep blue
-                               Color(0xFF4A9EF3), // mid
-                               Color(0xFF8ED0FD)  // right light blue
-                           )
-                       )
-                   )) {
+                   ) {
                        TodayWeather()
                        HourlyWeather()
                        DailyWeather()
