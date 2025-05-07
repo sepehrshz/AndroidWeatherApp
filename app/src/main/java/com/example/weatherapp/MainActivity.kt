@@ -57,9 +57,26 @@ fun WeatherApp() {
                     onSignUpClick = { currentScreen = Screen.Signup },
                     onLoginClick  = { currentScreen = Screen.Login }
                 )
-                TodayWeather()
-                HourlyWeather()
-                DailyWeather()
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ){
+                   Column(modifier = Modifier
+                       .fillMaxWidth()
+                       .background(
+                       brush = Brush.horizontalGradient(
+                           colors = listOf(
+                               Color(0xFF157DE0), // left deep blue
+                               Color(0xFF4A9EF3), // mid
+                               Color(0xFF8ED0FD)  // right light blue
+                           )
+                       )
+                   )) {
+                       TodayWeather()
+                       HourlyWeather()
+                       DailyWeather()
+                   }
+                }
             }
         }
         is Screen.Login -> {

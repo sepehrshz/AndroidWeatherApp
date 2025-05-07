@@ -22,15 +22,15 @@ fun TodayWeather() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(
-                        Color(0xFF157DE0), // left deep blue
-                        Color(0xFF4A9EF3), // mid
-                        Color(0xFF8ED0FD)  // right light blue
-                    )
-                )
-            )
+//            .background(
+//                brush = Brush.horizontalGradient(
+//                    colors = listOf(
+//                        Color(0xFF157DE0), // left deep blue
+//                        Color(0xFF4A9EF3), // mid
+//                        Color(0xFF8ED0FD)  // right light blue
+//                    )
+//                )
+//            )
             .padding(start = 24.dp, end = 24.dp, top = 1.dp, bottom = 32.dp)
     ) {
         Row(
