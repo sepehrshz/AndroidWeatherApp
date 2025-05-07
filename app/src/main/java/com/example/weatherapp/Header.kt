@@ -1,5 +1,6 @@
 package com.example.weatherapp
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -36,7 +37,7 @@ fun Header(
                     modifier = Modifier.padding(8.dp),
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8CC8FF),
+                        containerColor = Color.White.copy(alpha = 0.3f),
                         contentColor   = Color.White
                     )
                 ) {
@@ -48,7 +49,7 @@ fun Header(
                     modifier = Modifier.padding(8.dp),
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8CC8FF),
+                        containerColor = Color.White.copy(alpha = 0.3f),
                         contentColor   = Color.White
                     )
                 ) {
