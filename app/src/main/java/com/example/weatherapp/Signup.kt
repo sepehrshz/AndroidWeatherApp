@@ -41,6 +41,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.weatherapp.network.ApiClient
+import com.example.weatherapp.network.model.SignupRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun CreateAccountScreen(
@@ -63,6 +68,12 @@ fun CreateAccountScreen(
     val configuration = LocalConfiguration.current
     val screenHeightDp = configuration.screenHeightDp.dp
     val topPadding = screenHeightDp * 0.1f
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var valid by remember { mutableStateOf(true) }
+    var loading by remember { mutableStateOf(false) }
+    var apiError by remember { mutableStateOf<String?>(null) }
 
     var email           by remember { mutableStateOf("") }
     var password        by remember { mutableStateOf("") }
@@ -151,9 +162,30 @@ fun CreateAccountScreen(
                     focusManager.clearFocus()
                     emailError = email.isBlank()
                     passwordError = password.isBlank()
-                    confirmPasswordError = confirmPassword.isBlank()
+                    confirmPasswordError = confirmPassword.isBlank() || confirmPassword != password
                     if (!emailError && !passwordError && !confirmPasswordError) {
-                        onSignUpSuccess()
+                      //  onSignUpSuccess()
+                        loading = true
+                        apiError = null
+                        scope.launch {
+                            try{
+                                val response = withContext(Dispatchers.IO){
+                                    ApiClient.apiService.signup(SignupRequest(email,password)).execute()
+                                }
+
+                                if(response.isSuccessful && response.body()?.success == true){
+                                    onSignUpSuccess()
+                                } else{
+
+                                    apiError = response.body()?.message?: "Signup failed"
+                                }
+                            }catch (e: Exception){
+                                valid = false
+                                apiError = "Network error: ${e.localizedMessage}"
+                            }finally {
+                                loading = false
+                            }
+                        }
                     }
                 },
                 modifier = Modifier
@@ -169,6 +201,13 @@ fun CreateAccountScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
+
+           Row(){
+               if(valid == false){
+                   Text("${apiError}")
+               }
+           }
+
 
             Spacer(modifier = Modifier.height(40.dp))
             Text(
