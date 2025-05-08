@@ -42,7 +42,7 @@ fun HourlyWeather() {
                 Column(
                     modifier = Modifier
                         .padding(horizontal = 8.dp)
-                        .background(Color.White.copy(alpha = 0.2f) , shape = RoundedCornerShape(
+                        .background(Color.White.copy(alpha = 0.3f) , shape = RoundedCornerShape(
                             topStart = 100.dp,
                             topEnd = 100.dp,
                             bottomStart = 100.dp,
@@ -54,12 +54,12 @@ fun HourlyWeather() {
                         ,horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                         Image(painter = painterResource(id = R.drawable.rainy_weather) , contentDescription = "rainy weather",
-                            modifier = Modifier.size(80.dp))
+                            modifier = Modifier.size(60.dp))
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(hourlyList[index].first , color = Color.White , fontSize = 35.sp, fontWeight = FontWeight.Bold)
                         Text(hourlyList[index].second , color = Color.White , fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(17.dp))
-                        Text("Tomorrow", color = Color.White.copy(alpha = 0.7f) , style = MaterialTheme.typography.bodySmall)
+                        Text("Tomorrow", color = Color.White.copy(alpha = 0.9f) , style = MaterialTheme.typography.bodySmall)
                   }
             }
         }
