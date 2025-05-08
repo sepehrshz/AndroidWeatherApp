@@ -173,14 +173,14 @@ fun CreateAccountScreen(
                                     ApiClient.apiService.signup(SignupRequest(email,password)).execute()
                                 }
 
-                                if(response.isSuccessful && response.body()?.success == true){
+                                if(response.isSuccessful && response.body()?.objectId!=null){
                                     onSignUpSuccess()
                                 } else{
-
+                                    valid = false
                                     apiError = response.body()?.message?: "Signup failed"
                                 }
                             }catch (e: Exception){
-                                valid = false
+
                                 apiError = "Network error: ${e.localizedMessage}"
                             }finally {
                                 loading = false
