@@ -173,7 +173,7 @@ fun CreateAccountScreen(
                                     ApiClient.apiService.signup(SignupRequest(email,password)).execute()
                                 }
 
-                                if(response.isSuccessful && response.body()?.success == true){
+                                if(response.isSuccessful && response.body()?.objectId !=null){
                                     onSignUpSuccess()
                                 } else{
 

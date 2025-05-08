@@ -1,7 +1,7 @@
 package com.example.weatherapp.network.model
 
 data class SignupResponse(
-    val success: Boolean,
+    val objectId: String?=null,
     val message: String
 
 )
