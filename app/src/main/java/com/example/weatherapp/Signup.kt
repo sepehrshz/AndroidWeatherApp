@@ -1,9 +1,12 @@
+// CreateAccountScreen.kt
 package com.example.weatherapp
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Patterns
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -47,6 +50,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * Returns list of unmet password requirements.
+ */
+fun validatePassword(password: String): List<String> {
+    val missing = mutableListOf<String>()
+    if (password.length < 8) missing.add("at least 8 characters")
+    if (!password.any { it.isUpperCase() }) missing.add("one uppercase letter")
+    if (!password.any { it.isLowerCase() }) missing.add("one lowercase letter")
+    if (!password.any { it.isDigit() }) missing.add("one digit")
+    if (!password.any { "!@#\$%^&*()-_=+[]{}|;:'\",.<>?/`~".contains(it) })
+        missing.add("one special character")
+    return missing
+}
+
 @Composable
 fun CreateAccountScreen(
     primaryColor: Color = Color(0xFF008BF8),
@@ -57,180 +74,226 @@ fun CreateAccountScreen(
     iconSpacing: Dp = 16.dp,
     LoginScreen: () -> Unit = {},
     onSignUpSuccess: () -> Unit = {},
-    onBack: () -> Unit = {}                // ← جدید: callback برای دکمهٔ Back
+    onBack: () -> Unit = {}
 ) {
-    // هندلر برای دکمهٔ Back دستگاه
-    BackHandler {
-        onBack()
-    }
-
+    BackHandler { onBack() }
     val focusManager = LocalFocusManager.current
-    val configuration = LocalConfiguration.current
-    val screenHeightDp = configuration.screenHeightDp.dp
-    val topPadding = screenHeightDp * 0.1f
-
+    val config = LocalConfiguration.current
+    val topPadding = config.screenHeightDp.dp * 0.1f
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var valid by remember { mutableStateOf(true) }
 
+    var email                   by remember { mutableStateOf("") }
+    var password                by remember { mutableStateOf("") }
+    var confirmPassword         by remember { mutableStateOf("") }
 
-    var email           by remember { mutableStateOf("") }
-    var password        by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    var emailError              by remember { mutableStateOf(false) }
+    var passwordError           by remember { mutableStateOf(false) }
+    var confirmPasswordError    by remember { mutableStateOf(false) }
 
+    var emailErrorMessage       by remember { mutableStateOf("") }
+    var passwordErrorMessage    by remember { mutableStateOf("") }
+    var confirmPasswordErrorMessage by remember { mutableStateOf("") }
 
-    // Validation error flags
-    var emailError by remember { mutableStateOf(false) }
-    var passwordError by remember { mutableStateOf(false) }
-    var confirmPasswordError by remember { mutableStateOf(false) }
-
-    var loading by remember { mutableStateOf(false) }
-    var apiError by remember { mutableStateOf<String?>(null) }
+    var loading                 by remember { mutableStateOf(false) }
+    var apiError                by remember { mutableStateOf<String?>(null) }
+    var valid                   by remember { mutableStateOf(true) }
 
     Box(
-        modifier = Modifier
+        Modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = { focusManager.clearFocus() })
-            }
+            .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } }
     ) {
         Column(
-            modifier = Modifier
+            Modifier
                 .fillMaxSize()
-                .padding(
-                    top = topPadding,
-                    start = 24.dp,
-                    end = 24.dp,
-                    bottom = 16.dp
-                )
+                .padding(top = topPadding, start = 24.dp, end = 24.dp, bottom = 16.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Title
+            Text("Create Account", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = titleColor)
             Text(
-                text = "Create Account",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = titleColor
+                "Create an account so you can explore all the existing jobs",
+                fontSize = 18.sp, fontWeight = FontWeight.Bold, color = subtitleColor,
+                textAlign = TextAlign.Center, modifier = Modifier.padding(vertical = 12.dp)
             )
-            Text(
-                text = "Create an account so you can explore all the existing jobs",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = subtitleColor,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(vertical = 12.dp)
-            )
-            Spacer(modifier = Modifier.height(70.dp))
+            Spacer(Modifier.height(70.dp))
 
+            // Email
             InputField(
                 value = email,
                 label = "Email",
                 backgroundColor = inputBackgroundColor,
                 isError = emailError,
-                errorMessage = "Please enter email"
+                errorMessage = emailErrorMessage
             ) {
                 email = it
-                if (emailError && it.isNotBlank()) emailError = false
+                if (emailError) {
+                    emailError = false
+                    emailErrorMessage = ""
+                }
             }
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
 
+            // Password
             InputField(
                 value = password,
                 label = "Password",
                 isPassword = true,
                 backgroundColor = inputBackgroundColor,
                 isError = passwordError,
-                errorMessage = "Please enter password"
+                errorMessage = passwordErrorMessage
             ) {
                 password = it
-                if (passwordError && it.isNotBlank()) passwordError = false
+                if (passwordError) {
+                    passwordError = false
+                    passwordErrorMessage = ""
+                }
             }
-            Spacer(modifier = Modifier.height(20.dp))
 
+            // Strength Meter + Label
+            if (password.isNotEmpty()) {
+                val missing = validatePassword(password)
+                val totalRules = 5f
+                val metRules = totalRules - missing.size
+                val strengthFraction = (metRules / totalRules).coerceIn(0f, 1f)
+
+                // Determine label & target color
+                val (strengthLabel, targetColor) = when {
+                    missing.isEmpty()         -> "Strong" to Color.Green
+                    strengthFraction >= 0.6f  -> "Medium" to Color(0xFFFFC107)
+                    else                      -> "Weak" to Color.Red
+                }
+
+                val animatedColor by animateColorAsState(targetColor)
+
+                LinearProgressIndicator(
+                    progress   = strengthFraction,
+                    color      = animatedColor,
+                    trackColor = Color.LightGray,
+                    modifier   = Modifier
+                        .fillMaxWidth()
+                        .height(20.dp)
+                        .padding(vertical = 8.dp)
+                )
+                Text(
+                    text = strengthLabel,
+                    color = animatedColor,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                )
+            } else {
+                Spacer(Modifier.height(32.dp))
+            }
+
+            // Confirm Password
             InputField(
                 value = confirmPassword,
                 label = "Confirm Password",
                 isPassword = true,
                 backgroundColor = inputBackgroundColor,
                 isError = confirmPasswordError,
-                errorMessage = "Please confirm password"
+                errorMessage = confirmPasswordErrorMessage
             ) {
                 confirmPassword = it
-                if (confirmPasswordError && it.isNotBlank()) confirmPasswordError = false
+                if (confirmPasswordError) {
+                    confirmPasswordError = false
+                    confirmPasswordErrorMessage = ""
+                }
             }
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(Modifier.height(50.dp))
 
+            // Sign up Button
             Button(
                 onClick = {
                     focusManager.clearFocus()
-                    emailError = email.isBlank()
-                    passwordError = password.isBlank()
-                    confirmPasswordError = confirmPassword.isBlank() || confirmPassword != password
+                    // reset flags
+                    emailError = false; passwordError = false; confirmPasswordError = false
+                    emailErrorMessage = ""; passwordErrorMessage = ""; confirmPasswordErrorMessage = ""
+                    valid = true
+
+                    // Email
+                    if (email.isBlank()) {
+                        emailError = true
+                        emailErrorMessage = "Please enter email"
+                    } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        emailError = true
+                        emailErrorMessage = "Invalid email address"
+                    }
+
+                    // Password
+                    if (password.isBlank()) {
+                        passwordError = true
+                        passwordErrorMessage = "Please enter password"
+                    } else {
+                        val m = validatePassword(password)
+                        if (m.isNotEmpty()) {
+                            passwordError = true
+                            passwordErrorMessage = "Password is too weak: missing ${m.joinToString(", ")}"
+                        }
+                    }
+
+                    // Confirm Password
+                    if (confirmPassword.isBlank()) {
+                        confirmPasswordError = true
+                        confirmPasswordErrorMessage = "Please confirm password"
+                    } else if (confirmPassword != password) {
+                        confirmPasswordError = true
+                        confirmPasswordErrorMessage = "Passwords do not match"
+                    }
+
+                    // Call API
                     if (!emailError && !passwordError && !confirmPasswordError) {
-                      //  onSignUpSuccess()
-                        loading = true
-                        apiError = null
+                        loading = true; apiError = null
                         scope.launch {
-                            try{
-                                val response = withContext(Dispatchers.IO){
-                                    ApiClient.apiService.signup(SignupRequest(email,password)).execute()
+                            try {
+                                val resp = withContext(Dispatchers.IO) {
+                                    ApiClient.apiService.signup(SignupRequest(email, password)).execute()
                                 }
-
-
-                                if(response.isSuccessful && response.body()?.objectId!=null){
+                                if (resp.isSuccessful && resp.body()?.objectId != null) {
                                     onSignUpSuccess()
-                                } else{
+                                } else {
                                     valid = false
-                                    apiError = response.body()?.message?: "Signup failed"
+                                    apiError = resp.body()?.message ?: "Signup failed"
                                 }
-                            }catch (e: Exception){
-
+                            } catch (e: Exception) {
+                                valid = false
                                 apiError = "Network error: ${e.localizedMessage}"
-                            }finally {
+                            } finally {
                                 loading = false
                             }
                         }
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = buttonColors(containerColor = primaryColor)
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape    = RoundedCornerShape(12.dp),
+                colors   = buttonColors(containerColor = primaryColor)
             ) {
-                Text(
-                    "Sign up",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Text("Sign up", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
 
-           Row(){
-               if(valid == false){
-                   Text("${apiError}")
-               }
-           }
+            if (!valid && apiError != null) {
+                Text(apiError!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
+            }
 
-
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(Modifier.height(40.dp))
             Text(
-                text = "Already have an account",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
+                "Already have an account",
+                fontSize = 14.sp, fontWeight = FontWeight.Bold,
                 color = Color(0xFF616160),
                 modifier = Modifier.clickable { LoginScreen() }
             )
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(Modifier.height(40.dp))
             Text(
-                text = "Or continue with",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = primaryColor
+                "Or continue with",
+                fontSize = 14.sp, fontWeight = FontWeight.Bold, color = primaryColor
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(iconSpacing, Alignment.CenterHorizontally)
             ) {
                 SocialButton(R.drawable.google, iconBackgroundColor, "https://www.google.com")
@@ -258,8 +321,7 @@ fun InputField(
         label = { Text(label) },
         singleLine = true,
         isError = isError,
-        visualTransformation =
-        if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = outlinedTextFieldColors(
@@ -271,11 +333,7 @@ fun InputField(
         ),
         supportingText = {
             if (isError) {
-                Text(
-                    text = errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Text(errorMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
         }
     )
@@ -290,15 +348,12 @@ fun SocialButton(
     val context = LocalContext.current
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val scale by animateFloatAsState(targetValue = if (isHovered) 1.2f else 1f)
+    val scale by animateFloatAsState(if (isHovered) 1.2f else 1f)
 
     Box(
-        modifier = Modifier
+        Modifier
             .size(52.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
+            .graphicsLayer { scaleX = scale; scaleY = scale }
             .clip(RoundedCornerShape(12.dp))
             .background(backgroundColor)
             .hoverable(interactionSource)
@@ -321,9 +376,6 @@ fun SocialButton(
 @Composable
 fun CreateAccountScreenPreview() {
     MaterialTheme {
-        CreateAccountScreen(
-            onSignUpSuccess = { /* navigate to home */ },
-            onBack = { /* back to home */ }
-        )
+        CreateAccountScreen(onSignUpSuccess = {}, onBack = {})
     }
 }

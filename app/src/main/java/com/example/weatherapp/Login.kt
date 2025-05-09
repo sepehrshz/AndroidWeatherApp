@@ -2,6 +2,7 @@ package com.example.weatherapp
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Patterns
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloatAsState
@@ -42,12 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.network.ApiClient
 import com.example.weatherapp.network.model.login.LoginRequest
-import kotlinx.coroutines.launch
-
-
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,13 +57,11 @@ fun LoginScreen(
     iconBackgroundColor: Color = Color(0xFFE7E7E7),
     iconSpacing: Dp = 16.dp,
     CreateAccountScreen: () -> Unit = {},
-    onSignInSuccess: (token:String?) -> Unit = {},
-    onBack: () -> Unit = {}          // ← جدید: callback برای دکمهٔ Back
+    onSignInSuccess: (token: String?) -> Unit = {},
+    onBack: () -> Unit = {}
 ) {
-    // هندل کردن Back دستگاه
-    BackHandler {
-        onBack()
-    }
+    // handle device back
+    BackHandler { onBack() }
 
     val focusManager = LocalFocusManager.current
     val configuration = LocalConfiguration.current
@@ -74,15 +70,17 @@ fun LoginScreen(
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var emailError by remember { mutableStateOf(false) }
-    var passwordError by remember { mutableStateOf(false) }
 
-    var valid by remember { mutableStateOf(true) }
+    var emailError by remember { mutableStateOf(false) }
+    var emailErrorMessage by remember { mutableStateOf("") }
+
+    var passwordError by remember { mutableStateOf(false) }
 
     var loading by remember { mutableStateOf(false) }
     var apiError by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
+    var valid by remember { mutableStateOf(true) }
 
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -92,15 +90,13 @@ fun LoginScreen(
             .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Title
         Text(
             text = "Login here",
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             color = titleColor
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        // Subtitle
+        Spacer(Modifier.height(8.dp))
         Text(
             text = "Welcome back you’ve been missed!",
             fontSize = 25.sp,
@@ -109,20 +105,23 @@ fun LoginScreen(
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 12.dp)
         )
-        Spacer(modifier = Modifier.height(70.dp))
+        Spacer(Modifier.height(70.dp))
 
-        // Email field
+        // Email field with validation
         LoginTextField(
             value = email,
             label = "Email",
             backgroundColor = inputBackgroundColor,
             isError = emailError,
-            errorMessage = "Please enter email"
+            errorMessage = emailErrorMessage
         ) {
             email = it
-            if (emailError && it.isNotBlank()) emailError = false
+            if (emailError) {
+                emailError = false
+                emailErrorMessage = ""
+            }
         }
-        Spacer(modifier = Modifier.height(35.dp))
+        Spacer(Modifier.height(35.dp))
 
         // Password field
         LoginTextField(
@@ -134,9 +133,11 @@ fun LoginScreen(
             errorMessage = "Please enter password"
         ) {
             password = it
-            if (passwordError && it.isNotBlank()) passwordError = false
+            if (passwordError) {
+                passwordError = false
+            }
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(Modifier.height(8.dp))
         Text(
             text = "Forgot your password?",
             fontSize = 15.sp,
@@ -145,42 +146,54 @@ fun LoginScreen(
             textAlign = TextAlign.End,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { /* TODO: navigate to ForgotPasswordScreen */ }
+                .clickable { /* TODO */ }
         )
+        Spacer(Modifier.height(35.dp))
 
-        Spacer(modifier = Modifier.height(35.dp))
-
-        // Sign in button
         Button(
             onClick = {
                 focusManager.clearFocus()
-                emailError = email.isBlank()
-                passwordError = password.isBlank()
-                if (!emailError && !passwordError) {
+                // reset
+                emailError = false
+                passwordError = false
+                emailErrorMessage = ""
 
+                // validate email
+                when {
+                    email.isBlank() -> {
+                        emailError = true
+                        emailErrorMessage = "Please enter email"
+                    }
+                    !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                        emailError = true
+                        emailErrorMessage = "Invalid email address"
+                    }
+                }
+                // validate password
+                if (password.isBlank()) {
+                    passwordError = true
+                }
+
+                if (!emailError && !passwordError) {
                     loading = true
                     apiError = null
-
                     scope.launch {
-                        try{
-                            val response = withContext(Dispatchers.IO){
-                                ApiClient.apiService.login(LoginRequest(email , password)).execute()
+                        try {
+                            val response = withContext(Dispatchers.IO) {
+                                ApiClient.apiService.login(LoginRequest(email, password)).execute()
                             }
-
-                            if(response.isSuccessful && response.body()?.userToken!=null){
+                            if (response.isSuccessful && response.body()?.userToken != null) {
                                 onSignInSuccess(response.body()?.userToken)
-                            }else{
+                            } else {
                                 valid = false
-                                apiError = response.body()?.message?: "${response}"
+                                apiError = response.body()?.message ?: "${response}"
                             }
-                        }catch (e : Exception){
+                        } catch (e: Exception) {
                             apiError = "Network error: ${e.localizedMessage}"
-                        }finally {
+                        } finally {
                             loading = false
                         }
                     }
-
-
                 }
             },
             modifier = Modifier
@@ -196,34 +209,28 @@ fun LoginScreen(
                 fontWeight = FontWeight.Bold
             )
         }
-        Row(){
-            if(valid == false){
-                Text("${apiError}")
-            }
-        }
-        Spacer(modifier = Modifier.height(50.dp))
 
-        // Create new account link
+        if (!valid) {
+            Spacer(Modifier.height(8.dp))
+            Text(apiError ?: "", color = MaterialTheme.colorScheme.error)
+        }
+
+        Spacer(Modifier.height(50.dp))
         Text(
             text = "Create new account",
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF616160),
-            modifier = Modifier
-                .clickable { CreateAccountScreen() }
+            modifier = Modifier.clickable { CreateAccountScreen() }
         )
-        Spacer(modifier = Modifier.height(70.dp))
-
-        // Or continue with
+        Spacer(Modifier.height(70.dp))
         Text(
             text = "Or continue with",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = primaryColor
         )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Social login buttons
+        Spacer(Modifier.height(16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(iconSpacing, Alignment.CenterHorizontally)
@@ -256,11 +263,11 @@ fun LoginTextField(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            containerColor       = backgroundColor,
-            focusedBorderColor   = if (isError) MaterialTheme.colorScheme.error else Color(0xFF008BF8),
+            containerColor = backgroundColor,
+            focusedBorderColor = if (isError) MaterialTheme.colorScheme.error else Color(0xFF008BF8),
             unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error else backgroundColor.copy(alpha = 0.5f),
-            cursorColor          = if (isError) MaterialTheme.colorScheme.error else Color.Black,
-            focusedLabelColor    = if (isError) MaterialTheme.colorScheme.error else Color.Black
+            cursorColor = if (isError) MaterialTheme.colorScheme.error else Color.Black,
+            focusedLabelColor = if (isError) MaterialTheme.colorScheme.error else Color.Black
         ),
         supportingText = {
             if (isError) {
@@ -293,9 +300,7 @@ fun LoginSocialButton(
             .background(backgroundColor)
             .hoverable(interactionSource)
             .pointerHoverIcon(PointerIcon.Hand)
-            .clickable {
-                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-            },
+            .clickable { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -313,8 +318,8 @@ fun LoginScreenPreview() {
     MaterialTheme {
         LoginScreen(
             CreateAccountScreen = { /* nav to sign-up */ },
-            onSignInSuccess     = { /* nav to home */ },
-            onBack              = { /* nav to home */ }
+            onSignInSuccess = { /* nav to home */ },
+            onBack = { /* nav back */ }
         )
     }
 }
