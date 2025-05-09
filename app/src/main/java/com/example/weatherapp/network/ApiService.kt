@@ -8,6 +8,6 @@ import retrofit2.http.POST
 
 interface ApiService {
 
-    @POST("users_weatherapp")
+    @POST("data/Users")
     fun signup(@Body request: SignupRequest) : Call<SignupResponse>
 }

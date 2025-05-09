@@ -7,7 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 
 object ApiClient{
-    private const val BASE_URL = "https://forwardreason-us.backendless.app/api/data/"
+    private const val BASE_URL = "https://forwardreason-us.backendless.app/api/"
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
