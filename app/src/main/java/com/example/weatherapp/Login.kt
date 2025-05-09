@@ -19,6 +19,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.ButtonDefaults.buttonColors
+import androidx.compose.material3.TextFieldDefaults.outlinedTextFieldColors
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,7 +64,6 @@ fun LoginScreen(
     onSignInSuccess: (token: String?) -> Unit = {},
     onBack: () -> Unit = {}
 ) {
-    // handle device back
     BackHandler { onBack() }
 
     val focusManager = LocalFocusManager.current
@@ -73,7 +76,6 @@ fun LoginScreen(
 
     var emailError by remember { mutableStateOf(false) }
     var emailErrorMessage by remember { mutableStateOf("") }
-
     var passwordError by remember { mutableStateOf(false) }
 
     var loading by remember { mutableStateOf(false) }
@@ -107,7 +109,6 @@ fun LoginScreen(
         )
         Spacer(Modifier.height(70.dp))
 
-        // Email field with validation
         LoginTextField(
             value = email,
             label = "Email",
@@ -123,7 +124,6 @@ fun LoginScreen(
         }
         Spacer(Modifier.height(35.dp))
 
-        // Password field
         LoginTextField(
             value = password,
             label = "Password",
@@ -153,12 +153,10 @@ fun LoginScreen(
         Button(
             onClick = {
                 focusManager.clearFocus()
-                // reset
                 emailError = false
                 passwordError = false
                 emailErrorMessage = ""
 
-                // validate email
                 when {
                     email.isBlank() -> {
                         emailError = true
@@ -169,7 +167,6 @@ fun LoginScreen(
                         emailErrorMessage = "Invalid email address"
                     }
                 }
-                // validate password
                 if (password.isBlank()) {
                     passwordError = true
                 }
@@ -253,16 +250,31 @@ fun LoginTextField(
     errorMessage: String = "",
     onValueChange: (String) -> Unit
 ) {
+    var passwordVisible by remember { mutableStateOf(false) }
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         singleLine = true,
         isError = isError,
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+        visualTransformation = when {
+            !isPassword -> VisualTransformation.None
+            passwordVisible -> VisualTransformation.None
+            else -> PasswordVisualTransformation()
+        },
+        trailingIcon = {
+            if (isPassword) {
+                val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                val description = if (passwordVisible) "Hide password" else "Show password"
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(imageVector = image, contentDescription = description)
+                }
+            }
+        },
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = TextFieldDefaults.outlinedTextFieldColors(
+        colors = outlinedTextFieldColors(
             containerColor = backgroundColor,
             focusedBorderColor = if (isError) MaterialTheme.colorScheme.error else Color(0xFF008BF8),
             unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error else backgroundColor.copy(alpha = 0.5f),

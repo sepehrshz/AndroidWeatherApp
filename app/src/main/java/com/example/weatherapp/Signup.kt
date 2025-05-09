@@ -1,4 +1,3 @@
-// CreateAccountScreen.kt
 package com.example.weatherapp
 
 import android.content.Intent
@@ -22,6 +21,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.TextFieldDefaults.outlinedTextFieldColors
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +61,7 @@ fun validatePassword(password: String): List<String> {
     if (!password.any { it.isUpperCase() }) missing.add("one uppercase letter")
     if (!password.any { it.isLowerCase() }) missing.add("one lowercase letter")
     if (!password.any { it.isDigit() }) missing.add("one digit")
-    if (!password.any { "!@#\$%^&*()-_=+[]{}|;:'\",.<>?/`~".contains(it) })
+    if (!password.any { "!@#\\$%^&*()-_=+[]{}|;:'\",.<>?/`~".contains(it) })
         missing.add("one special character")
     return missing
 }
@@ -124,6 +126,7 @@ fun CreateAccountScreen(
             InputField(
                 value = email,
                 label = "Email",
+                isPassword = false,
                 backgroundColor = inputBackgroundColor,
                 isError = emailError,
                 errorMessage = emailErrorMessage
@@ -315,13 +318,26 @@ fun InputField(
     errorMessage: String = "",
     onValueChange: (String) -> Unit
 ) {
+    var passwordVisible by remember { mutableStateOf(false) }
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         singleLine = true,
         isError = isError,
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+        visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+        trailingIcon = {
+            if (isPassword) {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    val icon = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                    )
+                }
+            }
+        },
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = outlinedTextFieldColors(
