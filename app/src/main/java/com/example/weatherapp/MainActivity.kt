@@ -36,7 +36,6 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WeatherApp() {
-    val scrollState = rememberScrollState()
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Weather) }
     var userToken by remember { mutableStateOf<String?>(null) }
 
