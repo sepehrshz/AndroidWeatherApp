@@ -22,9 +22,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Calendar
 
 @Composable
 fun HourlyWeather() {
+
+    val calendar = Calendar.getInstance()
+    val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+    val hourLabels = (1..5).map { i -> (currentHour + i) % 24 }
+
     val hourlyList = listOf(
         Pair("17°" , "Cloudy"),
         Pair("18°" , "Cloudy"),
@@ -59,7 +65,7 @@ fun HourlyWeather() {
                         Text(hourlyList[index].first , color = Color.White , fontSize = 35.sp, fontWeight = FontWeight.Bold)
                         Text(hourlyList[index].second , color = Color.White , fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(17.dp))
-                        Text("Tomorrow", color = Color.White.copy(alpha = 0.9f) , style = MaterialTheme.typography.bodySmall)
+                        Text("${hourLabels[index]}", color = Color.White.copy(alpha = 0.9f) , style = MaterialTheme.typography.bodySmall)
                   }
             }
         }

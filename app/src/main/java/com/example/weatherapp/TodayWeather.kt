@@ -22,15 +22,6 @@ fun TodayWeather() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-//            .background(
-//                brush = Brush.horizontalGradient(
-//                    colors = listOf(
-//                        Color(0xFF157DE0), // left deep blue
-//                        Color(0xFF4A9EF3), // mid
-//                        Color(0xFF8ED0FD)  // right light blue
-//                    )
-//                )
-//            )
             .padding(start = 24.dp, end = 24.dp, top = 1.dp, bottom = 1.dp)
     ) {
         Row(
@@ -38,7 +29,7 @@ fun TodayWeather() {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Temperature and Location (left)
+            // Temperature and Location
             Column(
                 horizontalAlignment = Alignment.Start
             ) {
@@ -77,7 +68,7 @@ fun TodayWeather() {
                 }
             }
 
-            // Weather Icon (right)
+            // Weather Icon
             Image(
                 painter = painterResource(id = R.drawable.sunny_weather),
                 contentDescription = "Weather Icon",

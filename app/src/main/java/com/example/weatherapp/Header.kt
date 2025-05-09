@@ -1,6 +1,5 @@
 package com.example.weatherapp
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -33,7 +32,7 @@ fun Header(
         ) {
             Row {
                 Button(
-                    onClick = onSignUpClick,    // ← اینجا
+                    onClick = onSignUpClick,
                     modifier = Modifier.padding(8.dp),
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -45,7 +44,7 @@ fun Header(
                 }
 
                 Button(
-                    onClick = onLoginClick,      // ← و اینجا
+                    onClick = onLoginClick,
                     modifier = Modifier.padding(8.dp),
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(
