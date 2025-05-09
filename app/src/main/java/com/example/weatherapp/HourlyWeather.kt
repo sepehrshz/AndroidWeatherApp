@@ -65,7 +65,7 @@ fun HourlyWeather() {
                         Text(hourlyList[index].first , color = Color.White , fontSize = 35.sp, fontWeight = FontWeight.Bold)
                         Text(hourlyList[index].second , color = Color.White , fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(17.dp))
-                        Text("${hourLabels[index]}", color = Color.White.copy(alpha = 0.9f) , style = MaterialTheme.typography.bodySmall)
+                        Text("${hourLabels[index]}:00",fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White.copy(alpha = 0.9f) , style = MaterialTheme.typography.bodySmall)
                   }
             }
         }
