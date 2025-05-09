@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+
 }
 
 android {
@@ -30,6 +31,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
+
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -40,7 +43,7 @@ android {
 }
 
 dependencies {
-
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -62,6 +65,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("com.google.android.material:material:1.9.0")
     implementation(libs.places)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
