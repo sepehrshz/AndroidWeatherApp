@@ -40,6 +40,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.weatherapp.network.ApiClient
+import com.example.weatherapp.network.model.login.LoginRequest
+import kotlinx.coroutines.launch
+
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +59,7 @@ fun LoginScreen(
     iconBackgroundColor: Color = Color(0xFFE7E7E7),
     iconSpacing: Dp = 16.dp,
     CreateAccountScreen: () -> Unit = {},
-    onSignInSuccess: () -> Unit = {},
+    onSignInSuccess: (token:String?) -> Unit = {},
     onBack: () -> Unit = {}          // ← جدید: callback برای دکمهٔ Back
 ) {
     // هندل کردن Back دستگاه
@@ -68,6 +76,13 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf(false) }
     var passwordError by remember { mutableStateOf(false) }
+
+    var valid by remember { mutableStateOf(true) }
+
+    var loading by remember { mutableStateOf(false) }
+    var apiError by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+
 
     Column(
         modifier = Modifier
@@ -142,7 +157,30 @@ fun LoginScreen(
                 emailError = email.isBlank()
                 passwordError = password.isBlank()
                 if (!emailError && !passwordError) {
-                    onSignInSuccess()
+
+                    loading = true
+                    apiError = null
+
+                    scope.launch {
+                        try{
+                            val response = withContext(Dispatchers.IO){
+                                ApiClient.apiService.login(LoginRequest(email , password)).execute()
+                            }
+
+                            if(response.isSuccessful && response.body()?.userToken!=null){
+                                onSignInSuccess(response.body()?.userToken)
+                            }else{
+                                valid = false
+                                apiError = response.body()?.message?: "${response}"
+                            }
+                        }catch (e : Exception){
+                            apiError = "Network error: ${e.localizedMessage}"
+                        }finally {
+                            loading = false
+                        }
+                    }
+
+
                 }
             },
             modifier = Modifier
@@ -157,6 +195,11 @@ fun LoginScreen(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
+        }
+        Row(){
+            if(valid == false){
+                Text("${apiError}")
+            }
         }
         Spacer(modifier = Modifier.height(50.dp))
 

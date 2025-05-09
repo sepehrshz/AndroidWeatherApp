@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.network.ApiClient
-import com.example.weatherapp.network.model.SignupRequest
+import com.example.weatherapp.network.model.signup.SignupRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -72,17 +72,20 @@ fun CreateAccountScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var valid by remember { mutableStateOf(true) }
-    var loading by remember { mutableStateOf(false) }
-    var apiError by remember { mutableStateOf<String?>(null) }
+
 
     var email           by remember { mutableStateOf("") }
     var password        by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
+
     // Validation error flags
     var emailError by remember { mutableStateOf(false) }
     var passwordError by remember { mutableStateOf(false) }
     var confirmPasswordError by remember { mutableStateOf(false) }
+
+    var loading by remember { mutableStateOf(false) }
+    var apiError by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier

@@ -37,6 +37,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WeatherApp() {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Weather) }
+    var userToken by remember { mutableStateOf<String?>(null) }
+
+
     val scrollState = rememberScrollState()
 
     when (currentScreen) {
@@ -79,7 +82,10 @@ fun WeatherApp() {
         is Screen.Login -> {
             LoginScreen(
                 CreateAccountScreen = { currentScreen = Screen.Signup },
-                onSignInSuccess     = { currentScreen = Screen.Weather },
+                onSignInSuccess     = { token:String? ->
+                    currentScreen = Screen.Weather
+                    userToken = token
+                },
                 onBack = { currentScreen = Screen.Weather }
             )
         }
