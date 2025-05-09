@@ -64,7 +64,7 @@ fun DailyWeather() {
                         contentScale = ContentScale.Fit   // ← برای حفظ تناسب
                     )
                     Spacer(modifier = Modifier.padding(8.dp))
-                    Text("18°/19°", color = Color(0xFFFFFEFE), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("18°/19°", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         }
