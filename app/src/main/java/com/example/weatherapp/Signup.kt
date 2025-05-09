@@ -204,7 +204,7 @@ fun CreateAccountScreen(
                     confirmPasswordErrorMessage = ""
                 }
             }
-            Spacer(Modifier.height(50.dp))
+            Spacer(Modifier.height(48.dp))
 
             // Sign up Button
             Button(
