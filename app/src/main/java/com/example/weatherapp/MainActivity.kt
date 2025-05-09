@@ -14,6 +14,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.weatherapp.ui.theme.WeatherAppTheme
 import android.os.Bundle
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 
 sealed class Screen {
@@ -35,6 +37,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WeatherApp() {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Weather) }
+    val scrollState = rememberScrollState()
 
     when (currentScreen) {
         is Screen.Weather -> {
@@ -52,6 +55,7 @@ fun WeatherApp() {
                             )
                         )
                     )
+                    .verticalScroll(scrollState)
             ) {
                 Spacer(modifier = Modifier.height(24.dp))
                 Header(
