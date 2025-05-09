@@ -38,6 +38,10 @@ class MainActivity : ComponentActivity() {
 fun WeatherApp() {
     val scrollState = rememberScrollState()
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Weather) }
+    var userToken by remember { mutableStateOf<String?>(null) }
+
+
+    val scrollState = rememberScrollState()
 
     when (currentScreen) {
         is Screen.Weather -> {
@@ -56,6 +60,7 @@ fun WeatherApp() {
                             )
                         )
                     )
+                    .verticalScroll(scrollState)
             ) {
                 Spacer(modifier = Modifier.height(24.dp))
                 Header(
@@ -79,7 +84,10 @@ fun WeatherApp() {
         is Screen.Login -> {
             LoginScreen(
                 CreateAccountScreen = { currentScreen = Screen.Signup },
-                onSignInSuccess     = { currentScreen = Screen.Weather },
+                onSignInSuccess     = { token:String? ->
+                    currentScreen = Screen.Weather
+                    userToken = token
+                },
                 onBack = { currentScreen = Screen.Weather }
             )
         }

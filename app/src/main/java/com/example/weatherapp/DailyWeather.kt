@@ -33,6 +33,7 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DailyWeather() {
+
     val today = LocalDate.now()
 
     val dayList = (1..5).map { offset ->
@@ -40,6 +41,7 @@ fun DailyWeather() {
         if (offset == 1) "Tomorrow"
         else day.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
     }
+
 
 //    val dayList = listOf("Tomorrow", "Saturday", "Sunday", "Monday", "Tuesday")
 
