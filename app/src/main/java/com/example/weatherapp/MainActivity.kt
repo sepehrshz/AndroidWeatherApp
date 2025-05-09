@@ -48,7 +48,6 @@ fun WeatherApp() {
                 modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth()
-                    .verticalScroll(scrollState)
                     .wrapContentSize(Alignment.TopStart)
                     .background(
                         brush = Brush.horizontalGradient(
