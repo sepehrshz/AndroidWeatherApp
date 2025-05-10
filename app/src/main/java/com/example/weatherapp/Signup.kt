@@ -260,16 +260,6 @@ fun CreateAccountScreen(
                                     } catch (e: Exception) {
                                         "Signup failed"
                                     }
-//                                    valid = false
-//                                    apiError = when {
-//                                        resp.code() == 409 ->
-//                                            "An account with this email already exists. Please choose a different email or password."
-//                                        resp.body()?.message?.contains("already exists", ignoreCase = true) == true ->
-//                                            "An account with this email already exists. Please choose a different email or password."
-//                                        else ->
-//                                            resp.body()?.message ?: "Signup failed. Please try again."
-//                                    }
-
                                 }
                             } catch (e: Exception) {
                                 loading = false
