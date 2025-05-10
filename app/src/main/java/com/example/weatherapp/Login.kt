@@ -5,7 +5,7 @@ import android.net.Uri
 import android.util.Patterns
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +21,7 @@ import androidx.compose.material3.*
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.TextFieldDefaults.outlinedTextFieldColors
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
@@ -83,6 +84,17 @@ fun LoginScreen(
     var valid by remember { mutableStateOf(true) }
 
     val scope = rememberCoroutineScope()
+
+    // Infinite transition for loading spinner
+    val infiniteTransition = rememberInfiniteTransition()
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        )
+    )
 
     Column(
         modifier = Modifier
@@ -156,6 +168,7 @@ fun LoginScreen(
                 emailError = false
                 passwordError = false
                 emailErrorMessage = ""
+                valid = true
 
                 when {
                     email.isBlank() -> {
@@ -183,9 +196,14 @@ fun LoginScreen(
                                 onSignInSuccess(response.body()?.userToken)
                             } else {
                                 valid = false
-                                apiError = response.body()?.message ?: "${response}"
+                                apiError = when (response.code()) {
+                                    404 -> "No account found with this email and password. Please check your credentials or sign up."
+                                    401 -> "Incorrect email or password. Please try again."
+                                    else -> response.body()?.message ?: "Login failed. Please try again later."
+                                }
                             }
                         } catch (e: Exception) {
+                            valid = false
                             apiError = "Network error: ${e.localizedMessage}"
                         } finally {
                             loading = false
@@ -193,23 +211,37 @@ fun LoginScreen(
                     }
                 }
             },
+            enabled = !loading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = buttonColors(containerColor = primaryColor)
-        ) {
-            Text(
-                text = "Sign in",
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
+            colors = ButtonDefaults.buttonColors(
+                containerColor           = primaryColor,
+                contentColor             = Color.White,
+                disabledContainerColor   = primaryColor, // ← اضافه کن
+                disabledContentColor     = Color.White   // ← اضافه کن
             )
+        ) {
+            if (loading) {
+                CircularProgressIndicator(
+                    color       = Color.White,
+                    strokeWidth = 2.dp,
+                    modifier    = Modifier.size(24.dp)
+                )
+            } else {
+                Text(
+                    text       = "Sign in",
+                    color      = Color.White,
+                    fontSize   = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         if (!valid) {
             Spacer(Modifier.height(8.dp))
-            Text(apiError ?: "", color = MaterialTheme.colorScheme.error)
+            Text(apiError ?: "", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
         }
 
         Spacer(Modifier.height(50.dp))
