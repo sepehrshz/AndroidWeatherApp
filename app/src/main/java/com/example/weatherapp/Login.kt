@@ -21,7 +21,6 @@ import androidx.compose.material3.*
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.TextFieldDefaults.outlinedTextFieldColors
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
@@ -62,7 +61,11 @@ fun LoginScreen(
     iconBackgroundColor: Color = Color(0xFFE7E7E7),
     iconSpacing: Dp = 16.dp,
     CreateAccountScreen: () -> Unit = {},
-    onSignInSuccess: (token: String?) -> Unit = {},
+    /**
+     * حالا تابع onSignInSuccess ایمیل کاربر رو دریافت می‌کنه
+     * نه توکن!
+     */
+    onSignInSuccess: (userEmail: String) -> Unit = {},
     onBack: () -> Unit = {}
 ) {
     BackHandler { onBack() }
@@ -190,10 +193,13 @@ fun LoginScreen(
                     scope.launch {
                         try {
                             val response = withContext(Dispatchers.IO) {
-                                ApiClient.apiService.login(LoginRequest(email, password)).execute()
+                                ApiClient.apiService
+                                    .login(LoginRequest(email, password))
+                                    .execute()
                             }
                             if (response.isSuccessful && response.body()?.userToken != null) {
-                                onSignInSuccess(response.body()?.userToken)
+                                // ایمیل را به MainActivity پاس بده
+                                onSignInSuccess(email)
                             } else {
                                 valid = false
                                 apiError = when (response.code()) {
@@ -216,11 +222,11 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
+            colors = buttonColors(
                 containerColor           = primaryColor,
                 contentColor             = Color.White,
-                disabledContainerColor   = primaryColor, // ← اضافه کن
-                disabledContentColor     = Color.White   // ← اضافه کن
+                disabledContainerColor   = primaryColor,
+                disabledContentColor     = Color.White
             )
         ) {
             if (loading) {
@@ -307,16 +313,16 @@ fun LoginTextField(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = outlinedTextFieldColors(
-            containerColor = backgroundColor,
-            focusedBorderColor = if (isError) MaterialTheme.colorScheme.error else Color(0xFF008BF8),
-            unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error else backgroundColor.copy(alpha = 0.5f),
-            cursorColor = if (isError) MaterialTheme.colorScheme.error else Color.Black,
-            focusedLabelColor = if (isError) MaterialTheme.colorScheme.error else Color.Black
+            containerColor      = backgroundColor,
+            focusedBorderColor  = if (isError) MaterialTheme.colorScheme.error else Color(0xFF008BF8),
+            unfocusedBorderColor= if (isError) MaterialTheme.colorScheme.error else backgroundColor.copy(alpha = 0.5f),
+            cursorColor         = if (isError) MaterialTheme.colorScheme.error else Color.Black,
+            focusedLabelColor   = if (isError) MaterialTheme.colorScheme.error else Color.Black
         ),
         supportingText = {
             if (isError) {
                 Text(
-                    text = errorMessage,
+                    text  = errorMessage,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -362,8 +368,8 @@ fun LoginScreenPreview() {
     MaterialTheme {
         LoginScreen(
             CreateAccountScreen = { /* nav to sign-up */ },
-            onSignInSuccess = { /* nav to home */ },
-            onBack = { /* nav back */ }
+            onSignInSuccess    = { /* ایمیل کاربر رو در MainActivity استفاده کن */ },
+            onBack             = { /* nav back */ }
         )
     }
 }

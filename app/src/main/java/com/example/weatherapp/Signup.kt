@@ -72,31 +72,31 @@ fun CreateAccountScreen(
     iconBackgroundColor: Color = Color(0xFFE7E7E7),
     iconSpacing: Dp = 16.dp,
     LoginScreen: () -> Unit = {},
-    onSignUpSuccess: () -> Unit = {},
+    /** حالا این callback ایمیل کاربر رو دریافت می‌کنه */
+    onSignUpSuccess: (userEmail: String) -> Unit = {},
     onBack: () -> Unit = {}
 ) {
     BackHandler { onBack() }
     val focusManager = LocalFocusManager.current
     val config = LocalConfiguration.current
     val topPadding = config.screenHeightDp.dp * 0.1f
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var email                        by remember { mutableStateOf("") }
-    var password                     by remember { mutableStateOf("") }
-    var confirmPassword              by remember { mutableStateOf("") }
+    var email                       by remember { mutableStateOf("") }
+    var password                    by remember { mutableStateOf("") }
+    var confirmPassword             by remember { mutableStateOf("") }
 
-    var emailError                   by remember { mutableStateOf(false) }
-    var passwordError                by remember { mutableStateOf(false) }
-    var confirmPasswordError         by remember { mutableStateOf(false) }
+    var emailError                  by remember { mutableStateOf(false) }
+    var passwordError               by remember { mutableStateOf(false) }
+    var confirmPasswordError        by remember { mutableStateOf(false) }
 
-    var emailErrorMessage            by remember { mutableStateOf("") }
-    var passwordErrorMessage         by remember { mutableStateOf("") }
-    var confirmPasswordErrorMessage  by remember { mutableStateOf("") }
+    var emailErrorMessage           by remember { mutableStateOf("") }
+    var passwordErrorMessage        by remember { mutableStateOf("") }
+    var confirmPasswordErrorMessage by remember { mutableStateOf("") }
 
-    var loading                      by remember { mutableStateOf(false) }
-    var apiError                     by remember { mutableStateOf<String?>(null) }
-    var valid                        by remember { mutableStateOf(true) }
+    var loading                     by remember { mutableStateOf(false) }
+    var apiError                    by remember { mutableStateOf<String?>(null) }
+    var valid                       by remember { mutableStateOf(true) }
 
     Box(
         Modifier
@@ -160,7 +160,7 @@ fun CreateAccountScreen(
                 val (strengthLabel, targetColor) = when {
                     missing.isEmpty()        -> "Strong" to Color.Green
                     strengthFraction >= 0.6f -> "Medium" to Color(0xFFFFC107)
-                    else                     -> "Weak" to Color.Red
+                    else                     -> "Weak"   to Color.Red
                 }
                 val animatedColor by animateColorAsState(targetColor)
 
@@ -248,14 +248,14 @@ fun CreateAccountScreen(
                                 }
                                 loading = false
                                 if (resp.isSuccessful && resp.body()?.objectId != null) {
-                                    onSignUpSuccess()
+                                    // ارسال ایمیل به MainActivity برای پیام خوش‌آمدگویی
+                                    onSignUpSuccess(email)
                                 } else {
                                     valid = false
                                     apiError = when {
-                                        resp.code() == 409 ->
-                                            "An account with this email already exists. Please choose a different email or password."
-                                        resp.body()?.message?.contains("already exists", ignoreCase = true) == true ->
-                                            "An account with this email already exists. Please choose a different email or password."
+                                        resp.code() == 409 ||
+                                                resp.body()?.message?.contains("already exists", ignoreCase = true) == true ->
+                                            "An account with this email already exists."
                                         else ->
                                             resp.body()?.message ?: "Signup failed. Please try again."
                                     }
@@ -286,9 +286,9 @@ fun CreateAccountScreen(
                 Text(
                     text = apiError!!,
                     color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center,                // ← اضافه شد
+                    textAlign = TextAlign.Center,
                     modifier = Modifier
-                        .fillMaxWidth()                         // ← اضافه شد
+                        .fillMaxWidth()
                         .padding(top = 8.dp)
                 )
             }
@@ -303,7 +303,8 @@ fun CreateAccountScreen(
             Spacer(Modifier.height(40.dp))
             Text(
                 "Or continue with",
-                fontSize = 14.sp, fontWeight = FontWeight.Bold, color = primaryColor
+                fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                color = primaryColor
             )
             Spacer(Modifier.height(16.dp))
             Row(
@@ -402,6 +403,9 @@ fun SocialButton(
 @Composable
 fun CreateAccountScreenPreview() {
     MaterialTheme {
-        CreateAccountScreen(onSignUpSuccess = {}, onBack = {})
+        CreateAccountScreen(
+            onSignUpSuccess = { /* ایمیل را در MainActivity بگیر */ },
+            onBack = {}
+        )
     }
 }
