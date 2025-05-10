@@ -53,16 +53,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
-/**
- * Returns list of unmet password requirements.
- */
 fun validatePassword(password: String): List<String> {
     val missing = mutableListOf<String>()
     if (password.length < 8) missing.add("at least 8 characters")
     if (!password.any { it.isUpperCase() }) missing.add("one uppercase letter")
     if (!password.any { it.isLowerCase() }) missing.add("one lowercase letter")
     if (!password.any { it.isDigit() }) missing.add("one digit")
-    if (!password.any { "!@#\\$%^&*()-_=+[]{}|;:'\",.<>?/`~".contains(it) })
+    if (!password.any { "!@#\$%^&*()-_=+[]{}|;:'\",.<>?/`~".contains(it) })
         missing.add("one special character")
     return missing
 }
@@ -86,21 +83,21 @@ fun CreateAccountScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var email                   by remember { mutableStateOf("") }
-    var password                by remember { mutableStateOf("") }
-    var confirmPassword         by remember { mutableStateOf("") }
+    var email                        by remember { mutableStateOf("") }
+    var password                     by remember { mutableStateOf("") }
+    var confirmPassword              by remember { mutableStateOf("") }
 
-    var emailError              by remember { mutableStateOf(false) }
-    var passwordError           by remember { mutableStateOf(false) }
-    var confirmPasswordError    by remember { mutableStateOf(false) }
+    var emailError                   by remember { mutableStateOf(false) }
+    var passwordError                by remember { mutableStateOf(false) }
+    var confirmPasswordError         by remember { mutableStateOf(false) }
 
-    var emailErrorMessage       by remember { mutableStateOf("") }
-    var passwordErrorMessage    by remember { mutableStateOf("") }
-    var confirmPasswordErrorMessage by remember { mutableStateOf("") }
+    var emailErrorMessage            by remember { mutableStateOf("") }
+    var passwordErrorMessage         by remember { mutableStateOf("") }
+    var confirmPasswordErrorMessage  by remember { mutableStateOf("") }
 
-    var loading                 by remember { mutableStateOf(false) }
-    var apiError                by remember { mutableStateOf<String?>(null) }
-    var valid                   by remember { mutableStateOf(true) }
+    var loading                      by remember { mutableStateOf(false) }
+    var apiError                     by remember { mutableStateOf<String?>(null) }
+    var valid                        by remember { mutableStateOf(true) }
 
     Box(
         Modifier
@@ -114,7 +111,6 @@ fun CreateAccountScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Title
             Text("Create Account", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = titleColor)
             Text(
                 "Create an account so you can explore all the existing jobs",
@@ -123,7 +119,7 @@ fun CreateAccountScreen(
             )
             Spacer(Modifier.height(70.dp))
 
-            // Email
+            // Email Field
             InputField(
                 value = email,
                 label = "Email",
@@ -140,7 +136,7 @@ fun CreateAccountScreen(
             }
             Spacer(Modifier.height(20.dp))
 
-            // Password
+            // Password Field
             InputField(
                 value = password,
                 label = "Password",
@@ -156,20 +152,17 @@ fun CreateAccountScreen(
                 }
             }
 
-            // Strength Meter + Label
+            // Strength Meter
             if (password.isNotEmpty()) {
                 val missing = validatePassword(password)
                 val totalRules = 5f
                 val metRules = totalRules - missing.size
                 val strengthFraction = (metRules / totalRules).coerceIn(0f, 1f)
-
-                // Determine label & target color
                 val (strengthLabel, targetColor) = when {
-                    missing.isEmpty()         -> "Strong" to Color.Green
-                    strengthFraction >= 0.6f  -> "Medium" to Color(0xFFFFC107)
-                    else                      -> "Weak" to Color.Red
+                    missing.isEmpty()        -> "Strong" to Color.Green
+                    strengthFraction >= 0.6f -> "Medium" to Color(0xFFFFC107)
+                    else                     -> "Weak" to Color.Red
                 }
-
                 val animatedColor by animateColorAsState(targetColor)
 
                 LinearProgressIndicator(
@@ -193,7 +186,7 @@ fun CreateAccountScreen(
                 Spacer(Modifier.height(32.dp))
             }
 
-            // Confirm Password
+            // Confirm Password Field
             InputField(
                 value = confirmPassword,
                 label = "Confirm Password",
@@ -214,12 +207,12 @@ fun CreateAccountScreen(
             Button(
                 onClick = {
                     focusManager.clearFocus()
-                    // reset flags
+                    // reset validation states
                     emailError = false; passwordError = false; confirmPasswordError = false
                     emailErrorMessage = ""; passwordErrorMessage = ""; confirmPasswordErrorMessage = ""
                     valid = true
 
-                    // Email
+                    // Local validation
                     if (email.isBlank()) {
                         emailError = true
                         emailErrorMessage = "Please enter email"
@@ -227,8 +220,6 @@ fun CreateAccountScreen(
                         emailError = true
                         emailErrorMessage = "Invalid email address"
                     }
-
-                    // Password
                     if (password.isBlank()) {
                         passwordError = true
                         passwordErrorMessage = "Please enter password"
@@ -239,8 +230,6 @@ fun CreateAccountScreen(
                             passwordErrorMessage = "Password is too weak: missing ${m.joinToString(", ")}"
                         }
                     }
-
-                    // Confirm Password
                     if (confirmPassword.isBlank()) {
                         confirmPasswordError = true
                         confirmPasswordErrorMessage = "Please confirm password"
@@ -249,50 +238,70 @@ fun CreateAccountScreen(
                         confirmPasswordErrorMessage = "Passwords do not match"
                     }
 
-                    // Call API
+                    // Call API if local checks pass
                     if (!emailError && !passwordError && !confirmPasswordError) {
-                        loading = true; apiError = null
+                        loading = true
+                        apiError = null
                         scope.launch {
                             try {
                                 val resp = withContext(Dispatchers.IO) {
                                     ApiClient.apiService.signup(SignupRequest(email, password)).execute()
                                 }
+                                loading = false
                                 if (resp.isSuccessful && resp.body()?.objectId != null) {
                                     onSignUpSuccess()
                                 } else {
+
+                                    valid = false
+                                    apiError = try {
+                                        val errorJson = resp.errorBody()?.string()
+                                        val jsonObject = JSONObject(errorJson ?: "")
+                                        jsonObject.optString("message", "Signup failed")
+                                    } catch (e: Exception) {
+                                        "Signup failed"
+                                    }
 //                                    valid = false
-//                                    apiError = resp.body()?.message ?: "Signup failed"
-//                                    valid = false
-//                                    val errorMsg = try {
-//                                        val errorJson = resp.errorBody()?.string()
-//                                        val jsonObject = JSONObject(errorJson ?: "")
-//                                        jsonObject.optString("message", "Signup failed")
-//                                    } catch (e: Exception) {
-//                                        "Signup failed"
+//                                    apiError = when {
+//                                        resp.code() == 409 ->
+//                                            "An account with this email already exists. Please choose a different email or password."
+//                                        resp.body()?.message?.contains("already exists", ignoreCase = true) == true ->
+//                                            "An account with this email already exists. Please choose a different email or password."
+//                                        else ->
+//                                            resp.body()?.message ?: "Signup failed. Please try again."
 //                                    }
-//                                    apiError = errorMsg
+
                                 }
                             } catch (e: Exception) {
+                                loading = false
                                 valid = false
                                 apiError = "Network error: ${e.localizedMessage}"
-                            } finally {
-                                loading = false
                             }
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape    = RoundedCornerShape(12.dp),
-                colors   = buttonColors(containerColor = primaryColor)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = buttonColors(containerColor = primaryColor)
             ) {
-                Text("Sign up", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                if (loading) {
+                    CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Sign up", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                }
             }
 
-//            if (!valid && apiError != null) {
-//                Text(apiError!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
-//            }
-            if(valid == false){
-                Text("${apiError}")
+            // API error message
+            if (!valid && apiError != null) {
+                Text(
+                    text = "${apiError}",
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,                // ← اضافه شد
+                    modifier = Modifier
+                        .fillMaxWidth()                         // ← اضافه شد
+                        .padding(top = 8.dp)
+                )
             }
 
             Spacer(Modifier.height(40.dp))
@@ -343,9 +352,8 @@ fun InputField(
         trailingIcon = {
             if (isPassword) {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    val icon = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     Icon(
-                        imageVector = icon,
+                        imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                         contentDescription = if (passwordVisible) "Hide password" else "Show password"
                     )
                 }
