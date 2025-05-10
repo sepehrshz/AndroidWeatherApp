@@ -51,6 +51,7 @@ import com.example.weatherapp.network.model.signup.SignupRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 /**
  * Returns list of unmet password requirements.
@@ -259,8 +260,17 @@ fun CreateAccountScreen(
                                 if (resp.isSuccessful && resp.body()?.objectId != null) {
                                     onSignUpSuccess()
                                 } else {
-                                    valid = false
-                                    apiError = resp.body()?.message ?: "Signup failed"
+//                                    valid = false
+//                                    apiError = resp.body()?.message ?: "Signup failed"
+//                                    valid = false
+//                                    val errorMsg = try {
+//                                        val errorJson = resp.errorBody()?.string()
+//                                        val jsonObject = JSONObject(errorJson ?: "")
+//                                        jsonObject.optString("message", "Signup failed")
+//                                    } catch (e: Exception) {
+//                                        "Signup failed"
+//                                    }
+//                                    apiError = errorMsg
                                 }
                             } catch (e: Exception) {
                                 valid = false
@@ -278,8 +288,11 @@ fun CreateAccountScreen(
                 Text("Sign up", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
 
-            if (!valid && apiError != null) {
-                Text(apiError!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
+//            if (!valid && apiError != null) {
+//                Text(apiError!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
+//            }
+            if(valid == false){
+                Text("${apiError}")
             }
 
             Spacer(Modifier.height(40.dp))
