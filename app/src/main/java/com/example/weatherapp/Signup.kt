@@ -51,6 +51,7 @@ import com.example.weatherapp.network.model.signup.SignupRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 fun validatePassword(password: String): List<String> {
     val missing = mutableListOf<String>()
@@ -251,13 +252,15 @@ fun CreateAccountScreen(
                                     // ارسال ایمیل به MainActivity برای پیام خوش‌آمدگویی
                                     onSignUpSuccess(email)
                                 } else {
+
                                     valid = false
-                                    apiError = when {
-                                        resp.code() == 409 ||
-                                                resp.body()?.message?.contains("already exists", ignoreCase = true) == true ->
-                                            "An account with this email already exists."
-                                        else ->
-                                            resp.body()?.message ?: "Signup failed. Please try again."
+
+                                    apiError = try {
+                                        val errorJson = resp.errorBody()?.string()
+                                        val jsonObject = JSONObject(errorJson ?: "")
+                                        jsonObject.optString("message", "Signup failed")
+                                    } catch (e: Exception) {
+                                        "Signup failed"
                                     }
                                 }
                             } catch (e: Exception) {
@@ -284,7 +287,7 @@ fun CreateAccountScreen(
             // API error message
             if (!valid && apiError != null) {
                 Text(
-                    text = apiError!!,
+                    text = "${apiError}",
                     color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
