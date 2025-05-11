@@ -5,13 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.*
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,14 +25,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 sealed class Screen {
     object Weather : Screen()
@@ -54,13 +57,54 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WeatherApp() {
-    var currentScreen   by remember { mutableStateOf<Screen>(Screen.Weather) }
-    var currentUser     by remember { mutableStateOf<String?>(null) }
-    var welcomeMessage  by remember { mutableStateOf<String?>(null) }
-    var showProfileMenu by remember { mutableStateOf(false) }
+    var currentScreen by remember { mutableStateOf<Screen>(Screen.Weather) }
+    var currentUser by remember { mutableStateOf<String?>(null) }
+    var welcomeMessage by remember { mutableStateOf<String?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
-    val scrollState     = rememberScrollState()
+    val scrollState = rememberScrollState()
     val welcomeProgress = remember { Animatable(1f) }
+    val scope = rememberCoroutineScope()
+
+    // Drawer state and animation variables
+    val drawerWidth = 240.dp
+    val drawerWidthPx = with(LocalDensity.current) { drawerWidth.toPx() }
+    val drawerOffsetX = remember { Animatable(-drawerWidthPx) }
+
+    // Calculate drawer visibility state based on position
+    val drawerVisibilityThreshold = drawerWidthPx * 0.1f
+    val isDrawerVisible = remember { derivedStateOf { drawerOffsetX.value > -drawerWidthPx + drawerVisibilityThreshold } }
+
+    // Function to update drawer position
+    fun updateDrawerPosition(targetValue: Float, velocity: Float = Float.POSITIVE_INFINITY) {
+        scope.launch {
+            val target = targetValue.coerceIn(-drawerWidthPx, 0f)
+            drawerOffsetX.animateTo(
+                targetValue = target,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow,
+                    visibilityThreshold = 0.5f
+                ),
+                initialVelocity = velocity
+            )
+        }
+    }
+
+    // Function to toggle drawer
+    fun toggleDrawer() {
+        updateDrawerPosition(
+            if (isDrawerVisible.value) -drawerWidthPx else 0f
+        )
+    }
+
+    // Function to open drawer partially
+    fun openDrawerPartially(offsetX: Float) {
+        val normalizedOffset = (offsetX / drawerWidthPx).coerceIn(0f, 1f)
+        val targetOffset = -drawerWidthPx + (normalizedOffset * drawerWidthPx)
+        scope.launch {
+            drawerOffsetX.snapTo(targetOffset)
+        }
+    }
 
     LaunchedEffect(welcomeMessage) {
         if (welcomeMessage != null) {
@@ -73,7 +117,47 @@ fun WeatherApp() {
         }
     }
 
-    Box(Modifier.fillMaxSize()) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            // Edge drag detection for opening drawer
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragStart = { offset ->
+                        // Only start drag from left edge (for opening)
+                        if (offset.x < 50 && !isDrawerVisible.value) {
+                            openDrawerPartially(0f) // Start drawer animation
+                        }
+                    },
+                    onDragEnd = {
+                        // Snap to closest position
+                        if (drawerOffsetX.value > -drawerWidthPx / 2) {
+                            updateDrawerPosition(0f) // Fully open
+                        } else {
+                            updateDrawerPosition(-drawerWidthPx) // Fully closed
+                        }
+                    },
+                    onDragCancel = {
+                        // Snap to closest position
+                        if (drawerOffsetX.value > -drawerWidthPx / 2) {
+                            updateDrawerPosition(0f) // Fully open
+                        } else {
+                            updateDrawerPosition(-drawerWidthPx) // Fully closed
+                        }
+                    },
+                    onHorizontalDrag = { change, dragAmount ->
+                        if (isDrawerVisible.value || change.position.x < 50) {
+                            change.consumePositionChange()
+                            scope.launch {
+                                drawerOffsetX.snapTo(
+                                    (drawerOffsetX.value + dragAmount).coerceIn(-drawerWidthPx, 0f)
+                                )
+                            }
+                        }
+                    }
+                )
+            }
+    ) {
         // Main content
         when (currentScreen) {
             is Screen.Weather -> {
@@ -112,7 +196,7 @@ fun WeatherApp() {
                                 tint               = Color.White,
                                 modifier           = Modifier
                                     .size(32.dp)
-                                    .clickable { showProfileMenu = !showProfileMenu }
+                                    .clickable { toggleDrawer() }
                             )
                         }
                     }
@@ -148,37 +232,58 @@ fun WeatherApp() {
             }
         }
 
-        // Overlay + Sliding menu
-        if (showProfileMenu) {
+        // Semi-transparent overlay when drawer is visible
+        val overlayAlpha by animateFloatAsState(
+            targetValue = if (isDrawerVisible.value) 0.5f else 0f,
+            animationSpec = tween(durationMillis = 300),
+            label = "overlayAlpha"
+        )
+
+        if (overlayAlpha > 0) {
             Box(
                 Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f))
-                    .clickable { showProfileMenu = false }
+                    .background(Color.Black.copy(alpha = overlayAlpha))
+                    .clickable(enabled = isDrawerVisible.value) {
+                        updateDrawerPosition(-drawerWidthPx)
+                    }
             )
-            AnimatedVisibility(
-                visible = showProfileMenu,
-                enter   = slideInHorizontally(
-                    initialOffsetX = { -it },
-                    animationSpec = tween(1000, easing = FastOutSlowInEasing)
-                ) + fadeIn(animationSpec = tween(1000, easing = FastOutSlowInEasing)),
-                exit    = slideOutHorizontally(
-                    targetOffsetX = { -it },
-                    animationSpec = tween(1000, easing = FastOutSlowInEasing)
-                ) + fadeOut(animationSpec = tween(1000, easing = FastOutSlowInEasing)),
-                modifier = Modifier.align(Alignment.TopStart)
-            ) {
+        }
+
+        // Drawer content with smooth position animation
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(drawerOffsetX.value.roundToInt(), 0) }
+                .width(drawerWidth)
+                .fillMaxHeight()
+                .background(Color.LightGray.copy(alpha = 0.9f))
+                // Drawer-specific drag handling
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = {
+                            // Snap to closest position
+                            if (drawerOffsetX.value > -drawerWidthPx / 2) {
+                                updateDrawerPosition(0f) // Fully open
+                            } else {
+                                updateDrawerPosition(-drawerWidthPx) // Fully closed
+                            }
+                        },
+                        onHorizontalDrag = { change, dragAmount ->
+                            change.consumePositionChange()
+                            scope.launch {
+                                drawerOffsetX.snapTo(
+                                    (drawerOffsetX.value + dragAmount).coerceIn(-drawerWidthPx, 0f)
+                                )
+                            }
+                        }
+                    )
+                }
+        ) {
+            if (isDrawerVisible.value) {
                 Column(
                     horizontalAlignment = Alignment.Start,
                     modifier = Modifier
                         .fillMaxHeight()
-                        .width(240.dp)
-                        .background(Color.LightGray)
-                        .pointerInput(Unit) {
-                            detectHorizontalDragGestures { _, dragAmount ->
-                                if (dragAmount < -20f) showProfileMenu = false
-                            }
-                        }
                         .padding(start = 16.dp, top = 56.dp)
                 ) {
                     Icon(
@@ -186,7 +291,7 @@ fun WeatherApp() {
                         contentDescription = "Close menu",
                         modifier = Modifier
                             .size(32.dp)
-                            .clickable { showProfileMenu = false }
+                            .clickable { updateDrawerPosition(-drawerWidthPx) }
                     )
                     Spacer(Modifier.height(24.dp))
                     Image(
@@ -232,7 +337,7 @@ fun WeatherApp() {
                 confirmButton = {
                     TextButton(onClick = {
                         currentUser = null
-                        showProfileMenu = false
+                        updateDrawerPosition(-drawerWidthPx)  // Close drawer
                         showLogoutDialog = false
                     }) {
                         Text("Yes")
