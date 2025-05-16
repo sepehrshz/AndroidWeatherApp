@@ -219,7 +219,6 @@ fun WeatherApp() {
                             )
                         }
                     }
-             //       Text("${location?.latitude}  ${location?.longitude}")
 
                     TodayWeather()
                     HourlyWeather()
