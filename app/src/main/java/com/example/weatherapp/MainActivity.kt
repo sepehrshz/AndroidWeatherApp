@@ -210,7 +210,7 @@ fun WeatherApp() {
             is Screen.Login -> {
                 LoginScreen(
                     CreateAccountScreen = { currentScreen = Screen.Signup },
-                    onSignInSuccess     = { email , token:String? ->
+                    onSignInSuccess     = { email:String , token:String? ->
                         val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
                         userToken = token
                         currentUser    = name
