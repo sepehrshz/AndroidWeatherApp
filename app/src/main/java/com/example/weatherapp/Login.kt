@@ -338,19 +338,36 @@ fun LoginSocialButton(
     url: String
 ) {
     val context = LocalContext.current
-    val interactionSource = remember { MutableInteractionSource() }
-    val isHovered by interactionSource.collectIsHoveredAsState()
-    val scale by animateFloatAsState(if (isHovered) 1.2f else 1f)
+
+    var rawScale by remember { mutableStateOf(1f) }
+    val scale by animateFloatAsState(targetValue = rawScale)
 
     Box(
         modifier = Modifier
             .size(52.dp)
-            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .clip(RoundedCornerShape(12.dp))
             .background(backgroundColor)
-            .hoverable(interactionSource)
-            .pointerHoverIcon(PointerIcon.Hand)
-            .clickable { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        rawScale = 1.2f
+                        tryAwaitRelease()
+                        rawScale = 1f
+                    },
+                    onTap = {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        )
+                    },
+                    onLongPress = {
+                        rawScale = 1.4f
+                    }
+                )
+            },
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -362,14 +379,5 @@ fun LoginSocialButton(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    MaterialTheme {
-        LoginScreen(
-            CreateAccountScreen = { /* nav to sign-up */ },
-            onSignInSuccess    = { /* ایمیل کاربر رو در MainActivity استفاده کن */ },
-            onBack             = { /* nav back */ }
-        )
-    }
-}
+
+
