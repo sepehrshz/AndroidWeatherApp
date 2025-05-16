@@ -57,6 +57,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WeatherApp() {
+    var userToken by remember { mutableStateOf<String?>(null) }
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Weather) }
     var currentUser by remember { mutableStateOf<String?>(null) }
     var welcomeMessage by remember { mutableStateOf<String?>(null) }
@@ -209,11 +210,13 @@ fun WeatherApp() {
             is Screen.Login -> {
                 LoginScreen(
                     CreateAccountScreen = { currentScreen = Screen.Signup },
-                    onSignInSuccess     = { email ->
+                    onSignInSuccess     = { email:String , token:String? ->
                         val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
+                        userToken = token
                         currentUser    = name
                         welcomeMessage = "Welcome, Dear $name"
                         currentScreen  = Screen.Weather
+
                     },
                     onBack = { currentScreen = Screen.Weather }
                 )
