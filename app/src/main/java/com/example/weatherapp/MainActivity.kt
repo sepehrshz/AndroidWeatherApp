@@ -412,10 +412,3 @@ fun WeatherApp() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun WeatherAppPreview() {
-    MaterialTheme {
-        WeatherApp()
-    }
-}
