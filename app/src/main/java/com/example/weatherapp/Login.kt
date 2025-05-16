@@ -65,7 +65,7 @@ fun LoginScreen(
      * حالا تابع onSignInSuccess ایمیل کاربر رو دریافت می‌کنه
      * نه توکن!
      */
-    onSignInSuccess: (userEmail: String) -> Unit = {},
+    onSignInSuccess: (userEmail: String , token:String?) -> Unit = {},
     onBack: () -> Unit = {}
 ) {
     BackHandler { onBack() }
@@ -199,7 +199,7 @@ fun LoginScreen(
                             }
                             if (response.isSuccessful && response.body()?.userToken != null) {
                                 // ایمیل را به MainActivity پاس بده
-                                onSignInSuccess(email)
+                                onSignInSuccess(email , response.body()?.userToken)
                             } else {
                                 valid = false
                                 apiError = when (response.code()) {
