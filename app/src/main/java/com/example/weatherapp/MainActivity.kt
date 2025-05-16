@@ -57,6 +57,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WeatherApp() {
+    var userToken by remember { mutableStateOf<String?>(null) }
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Weather) }
     var currentUser by remember { mutableStateOf<String?>(null) }
     var welcomeMessage by remember { mutableStateOf<String?>(null) }
