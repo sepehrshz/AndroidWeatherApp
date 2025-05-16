@@ -203,11 +203,6 @@ fun LoginScreen(
                                 onSignInSuccess(email , response.body()?.userToken)
                             } else {
                                 valid = false
-//                                apiError = when (response.code()) {
-//                                    404 -> "No account found with this email and password. Please check your credentials or sign up."
-//                                    401 -> "Incorrect email or password. Please try again."
-//                                    else -> response.body()?.message ?: "Login failed. Please try again later."
-//                                }
                                 apiError = try {
                                     val errorJson = response.errorBody()?.string()
                                     val jsonObject = JSONObject(errorJson ?: "")
