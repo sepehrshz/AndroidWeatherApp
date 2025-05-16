@@ -68,6 +68,7 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.compose.animation:animation:1.4.3")
     implementation("androidx.compose.material:material-icons-extended:1.5.0")
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
 
     implementation(libs.places)
     testImplementation(libs.junit)

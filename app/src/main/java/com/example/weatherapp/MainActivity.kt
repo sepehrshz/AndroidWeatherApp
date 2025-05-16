@@ -1,5 +1,7 @@
 package com.example.weatherapp
 
+import android.app.Activity
+import android.location.Location
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.weatherapp.util.LocationHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -57,6 +61,20 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WeatherApp() {
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    var location by remember { mutableStateOf<Location?>(null) }
+
+    LaunchedEffect(Unit) {
+
+        activity?.let {
+            val helper = LocationHelper(it)
+            location = helper.getLastKnownLocation()
+        }
+    }
+
+
     var userToken by remember { mutableStateOf<String?>(null) }
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Weather) }
     var currentUser by remember { mutableStateOf<String?>(null) }
@@ -201,6 +219,7 @@ fun WeatherApp() {
                             )
                         }
                     }
+             //       Text("${location?.latitude}  ${location?.longitude}")
 
                     TodayWeather()
                     HourlyWeather()
