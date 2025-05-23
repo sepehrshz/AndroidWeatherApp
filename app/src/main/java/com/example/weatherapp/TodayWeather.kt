@@ -33,11 +33,10 @@ fun TodayWeather(
     var city by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(location) {
-        if(location != null){
             try{
                 val response = WeatherApiClient.apiService.getCurrentWeather(
-                    lat = location.latitude,
-                    lon = location.longitude,
+                    lat = location?.latitude ?: 32.6311553,
+                    lon = location?.longitude ?:51.64102,
                     apiKey = apiKey
                 )
                 temp = "${response.main.temp.toInt()}"
@@ -47,7 +46,6 @@ fun TodayWeather(
                 e.printStackTrace()
             }
         }
-    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
