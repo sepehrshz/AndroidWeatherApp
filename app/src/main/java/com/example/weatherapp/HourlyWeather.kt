@@ -55,7 +55,7 @@ fun HourlyWeather(
                     lon = location.longitude,
                     apiKey = apiKey
                 )
-                forecastList = response.list.subList(1 , 6)
+                forecastList = response.list.subList(0 , 8)
             }catch (e:Exception){
                 e.printStackTrace()
             }
@@ -78,7 +78,7 @@ fun HourlyWeather(
        ){
             items(forecastList.size){ index ->
                 val item = forecastList[index]
-
+                val hour = item.dt_txt.substring(11 ,16)
                 Column(
                     modifier = Modifier
                         .padding(horizontal = 8.dp)
@@ -101,7 +101,7 @@ fun HourlyWeather(
                         Text("${item.main.temp.toInt()}" , color = Color.White , fontSize = 35.sp, fontWeight = FontWeight.Bold , textAlign = TextAlign.Center)
                         Text(item.weather[0].description , color = Color.White , fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                         Spacer(modifier = Modifier.height(17.dp))
-                        Text("${hourLabels[index]}:00",fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White.copy(alpha = 0.9f) , style = MaterialTheme.typography.bodySmall , textAlign = TextAlign.Center)
+                        Text(hour,fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White.copy(alpha = 0.9f) , style = MaterialTheme.typography.bodySmall , textAlign = TextAlign.Center)
                   }
             }
         }
