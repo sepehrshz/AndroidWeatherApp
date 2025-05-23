@@ -1,6 +1,7 @@
 package com.example.weatherapp
 
 
+import android.location.Location
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -15,9 +16,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.example.weatherapp.network.WeatherApiClient
+import com.example.weatherapp.network.model.weather.WeatherResponse
 
 @Composable
-fun TodayWeather() {
+fun TodayWeather(
+    location : Location?,
+    apiKey : String
+) {
+
+    var temp  by remember { mutableStateOf<String?>(null) }
+    var city by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(location) {
+        if(location != null){
+            try{
+                val response = WeatherApiClient.apiService.getCurrentWeather(
+                    lat = location.latitude,
+                    lon = location.longitude,
+                    apiKey = apiKey
+                )
+                temp = "${response.main.temp.toInt()}"
+                city = response.name
+
+            }catch (e:Exception){
+                e.printStackTrace()
+            }
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -33,7 +64,7 @@ fun TodayWeather() {
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = "34°C",
+                    text = "${temp?:"--"}°C",
                     fontSize = 64.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -58,7 +89,7 @@ fun TodayWeather() {
                         )
                         Spacer(modifier = Modifier.width(2.dp))
                         Text(
-                            text = "Isfahan",
+                            text = city?: "Loading...",
                             fontSize = 16.sp,
                             color = Color.White,
                             fontWeight = FontWeight.Medium

@@ -1,5 +1,6 @@
 package com.example.weatherapp
 
+import android.location.Location
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
