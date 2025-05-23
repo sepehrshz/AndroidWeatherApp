@@ -62,11 +62,7 @@ fun LoginScreen(
     iconBackgroundColor: Color = Color(0xFFE7E7E7),
     iconSpacing: Dp = 16.dp,
     CreateAccountScreen: () -> Unit = {},
-    /**
-     * حالا تابع onSignInSuccess ایمیل کاربر رو دریافت می‌کنه
-     * نه توکن!
-     */
-    onSignInSuccess: (userEmail: String , token:String?) -> Unit ={ _, _ -> } ,
+    onSignInSuccess: (userEmail: String) -> Unit ={ } ,
     onBack: () -> Unit = {}
 ) {
     BackHandler { onBack() }
@@ -200,7 +196,7 @@ fun LoginScreen(
                             }
                             if (response.isSuccessful && response.body()?.userToken != null) {
                                 // ایمیل را به MainActivity پاس بده
-                                onSignInSuccess(email , response.body()?.userToken)
+                                onSignInSuccess(email )
                             } else {
                                 valid = false
                                 apiError = try {
