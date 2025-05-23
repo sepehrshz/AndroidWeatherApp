@@ -62,7 +62,6 @@ fun HourlyWeather(
 
     }
 
-
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()

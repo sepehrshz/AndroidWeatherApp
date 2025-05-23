@@ -56,7 +56,7 @@ fun DailyWeather(
         else day.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
     }
 
-    var dailyNonForecast by remember { mutableStateOf<List<ForecastEntry>>(emptyList()) }
+    var dailyNoonForecast by remember { mutableStateOf<List<ForecastEntry>>(emptyList()) }
     LaunchedEffect(location) {
 
             try {
@@ -65,7 +65,7 @@ fun DailyWeather(
                     lon = location?.longitude ?:51.64102,
                     apiKey = apiKey
                 )
-                dailyNonForecast = response.list.filter {
+                dailyNoonForecast = response.list.filter {
                     it.dt_txt.contains("12:00:00")
                 }
             }catch (e:Exception){
@@ -80,7 +80,7 @@ fun DailyWeather(
         modifier = Modifier
             .padding(start = 16.dp, bottom = 45.dp, end = 16.dp, top = 40.dp)
     ) {
-        dailyNonForecast.forEach { item ->
+        dailyNoonForecast.forEach { item ->
             val dateTime = LocalDate.parse(item.dt_txt.substring(0,10))
             val day = dateTime.dayOfWeek.getDisplayName(TextStyle.FULL , Locale.getDefault())
             Row(
