@@ -98,7 +98,7 @@ fun HourlyWeather(
                         Image(painter = painterResource(id = R.drawable.rainy_weather) , contentDescription = "rainy weather",
                             modifier = Modifier.size(60.dp))
                         Spacer(modifier = Modifier.height(5.dp))
-                        Text("${item.main.temp.toInt()}" , color = Color.White , fontSize = 35.sp, fontWeight = FontWeight.Bold , textAlign = TextAlign.Center)
+                        Text("${item.main.temp.toInt()}°C" , color = Color.White , fontSize = 32.sp, fontWeight = FontWeight.Bold , textAlign = TextAlign.Center)
                         Text(item.weather[0].description , color = Color.White , fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                         Spacer(modifier = Modifier.height(17.dp))
                         Text(hour,fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White.copy(alpha = 0.9f) , style = MaterialTheme.typography.bodySmall , textAlign = TextAlign.Center)

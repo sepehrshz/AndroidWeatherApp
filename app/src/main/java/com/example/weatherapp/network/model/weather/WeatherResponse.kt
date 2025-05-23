@@ -8,7 +8,9 @@ data class WeatherResponse(
 )
 
 data class Main(
-    val temp : Float
+    val temp : Float,
+    val temp_max : Float,
+    val temp_min : Float
 )
 
 data class Weather(

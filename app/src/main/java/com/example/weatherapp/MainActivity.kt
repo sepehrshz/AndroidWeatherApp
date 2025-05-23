@@ -223,7 +223,7 @@ fun WeatherApp() {
 
                     TodayWeather(location , apiKey)
                     HourlyWeather(location , apiKey)
-                    DailyWeather()
+                    DailyWeather(location , apiKey)
                 }
             }
             is Screen.Login -> {
