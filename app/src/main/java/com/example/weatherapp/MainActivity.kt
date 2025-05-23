@@ -65,6 +65,7 @@ fun WeatherApp() {
     val activity = context as? Activity
 
     var location by remember { mutableStateOf<Location?>(null) }
+    val apiKey = "c10e88575b5ac6c09ce606af2c9c6e03"
 
     LaunchedEffect(Unit) {
 
@@ -220,9 +221,9 @@ fun WeatherApp() {
                         }
                     }
 
-                    TodayWeather()
-                    HourlyWeather()
-                    DailyWeather()
+                    TodayWeather(location , apiKey)
+                    HourlyWeather(location , apiKey)
+                    DailyWeather(location , apiKey)
                 }
             }
             is Screen.Login -> {

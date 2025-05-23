@@ -1,5 +1,6 @@
-package com.example.weatherapp.network
+package com.example.weatherapp.network.Client
 
+import com.example.weatherapp.network.Service.ApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
