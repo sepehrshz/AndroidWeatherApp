@@ -222,7 +222,7 @@ fun WeatherApp() {
                     }
 
                     TodayWeather(location , apiKey)
-                    HourlyWeather()
+                    HourlyWeather(location , apiKey)
                     DailyWeather()
                 }
             }
