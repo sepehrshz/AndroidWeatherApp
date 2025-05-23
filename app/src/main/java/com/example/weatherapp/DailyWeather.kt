@@ -58,11 +58,11 @@ fun DailyWeather(
 
     var dailyNonForecast by remember { mutableStateOf<List<ForecastEntry>>(emptyList()) }
     LaunchedEffect(location) {
-        if(location != null){
+
             try {
                 val response = WeatherApiClient.apiService.getHourlyForecast(
-                    lat = location.latitude,
-                    lon = location.longitude,
+                    lat = location?.latitude ?: 32.6311553,
+                    lon = location?.longitude ?:51.64102,
                     apiKey = apiKey
                 )
                 dailyNonForecast = response.list.filter {
@@ -73,7 +73,6 @@ fun DailyWeather(
             }
 
         }
-    }
 
 //    val dayList = listOf("Tomorrow", "Saturday", "Sunday", "Monday", "Tuesday")
 

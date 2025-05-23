@@ -48,11 +48,10 @@ fun HourlyWeather(
     var forecastList by remember { mutableStateOf<List<ForecastEntry>>(emptyList()) }
 
     LaunchedEffect(location) {
-        if(location != null){
             try {
                 val response = WeatherApiClient.apiService.getHourlyForecast(
-                    lat = location.latitude,
-                    lon = location.longitude,
+                    lat = location?.latitude ?: 32.6311553,
+                    lon = location?.longitude ?:51.64102,
                     apiKey = apiKey
                 )
                 forecastList = response.list.subList(0 , 8)
@@ -60,7 +59,7 @@ fun HourlyWeather(
                 e.printStackTrace()
             }
 
-        }
+
     }
 
     val hourlyList = listOf(
