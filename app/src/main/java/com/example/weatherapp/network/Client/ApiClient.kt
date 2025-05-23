@@ -1,27 +1,30 @@
-package com.example.weatherapp.network
+package com.example.weatherapp.network.Client
+
+import com.example.weatherapp.network.Service.ApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import com.example.weatherapp.network.WeatherApiService
 
-object WeatherApiClient {
-    private const val WEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5/"
+
+object ApiClient{
+
+    private const val BASE_URL = "https://forwardreason-us.backendless.app/api/"
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    private val httpClient = OkHttpClient.Builder()
+    private val httpclient = OkHttpClient.Builder()
         .addInterceptor(logging)
         .build()
 
-    val apiService : WeatherApiService by lazy {
+    val apiService: ApiService by lazy {
         Retrofit.Builder()
-            .baseUrl(WEATHER_BASE_URL)
-            .client(httpClient)
+            .baseUrl(BASE_URL)
+            .client(httpclient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(WeatherApiService::class.java)
+            .create(ApiService::class.java)
     }
 }

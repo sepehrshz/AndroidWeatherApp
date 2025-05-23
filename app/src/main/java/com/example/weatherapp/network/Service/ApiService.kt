@@ -1,4 +1,4 @@
-package com.example.weatherapp.network
+package com.example.weatherapp.network.Service
 
 import com.example.weatherapp.network.model.signup.SignupRequest
 import com.example.weatherapp.network.model.login.LoginRequest
