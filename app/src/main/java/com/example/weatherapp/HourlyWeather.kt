@@ -62,13 +62,6 @@ fun HourlyWeather(
 
     }
 
-    val hourlyList = listOf(
-        Pair("17°" , "Cloudy"),
-        Pair("18°" , "Cloudy"),
-        Pair("15°" , "Cloudy"),
-        Pair("21°" , "Cloudy"),
-        Pair("17°" , "Cloudy")
-    )
 
     LazyRow(
         modifier = Modifier
