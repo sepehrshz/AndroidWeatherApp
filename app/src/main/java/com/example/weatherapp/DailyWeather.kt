@@ -112,7 +112,7 @@ fun DailyWeather(
                         contentScale = ContentScale.Fit
                     )
                     Spacer(modifier = Modifier.padding(8.dp))
-                    Text("${ceil(item.main.temp_min).toInt()}°/${floor(item.main.temp_max).toInt()}°", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("${floor(item.main.temp_min).toInt()}°C / ${ceil(item.main.temp_max).toInt()}°C", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         }
